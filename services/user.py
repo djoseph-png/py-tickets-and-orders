@@ -41,13 +41,12 @@ def update_user(
     email: Optional[str] = None,
     first_name: Optional[str] = None,
     last_name: Optional[str] = None,
-) -> Any:
+) -> "User":
     """
     Atualiza campos opcionais do usuário.
     Se password for informado, usa set_password para re-hash.
     """
-    user = User.objects.get(id=user_id)
-
+    user = get_user(user_id=user_id)
     if username is not None:
         user.username = username
     if email is not None:
@@ -56,6 +55,7 @@ def update_user(
         user.first_name = first_name
     if last_name is not None:
         user.last_name = last_name
+
     if password is not None:
         user.set_password(password)
 
