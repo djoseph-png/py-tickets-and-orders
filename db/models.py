@@ -1,4 +1,7 @@
 from django.db import models
+from django.contrib.auth.models import AbstractUser
+from django.conf import settings
+from django.core.exceptions import ValidationError
 
 
 class Genre(models.Model):
@@ -50,3 +53,80 @@ class MovieSession(models.Model):
 
     def __str__(self) -> str:
         return f"{self.movie.title} {str(self.show_time)}"
+
+
+class User(AbstractUser):
+    """Custom user model."""
+    def __str__(self) -> str:
+        return self.username
+
+
+class Order(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="orders",
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return self.created_at.strftime("%Y-%m-%d %H:%M:%S")
+
+
+class Ticket(models.Model):
+    movie_session = models.ForeignKey(
+        "MovieSession",
+        on_delete=models.CASCADE,
+        related_name="tickets",
+    )
+    order = models.ForeignKey(
+        "Order",
+        on_delete=models.CASCADE,
+        related_name="tickets",
+    )
+    row = models.PositiveIntegerField()
+    seat = models.PositiveIntegerField()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["movie_session", "row", "seat"],
+                name="unique_ticket_per_session_row_seat",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        show = self.movie_session.show_time.strftime("%Y-%m-%d %H:%M:%S")
+        title = self.movie_session.movie.title
+        return f"{title} {show} (row: {self.row}, seat: {self.seat})"
+
+    def clean(self) -> None:
+        hall = self.movie_session.cinema_hall
+        errors: dict[str, list[str]] = {}
+
+        if not (1 <= self.row <= hall.rows):
+            errors["row"] = [
+                (
+                    "row number must be in available range: "
+                    f"(1, rows): (1, {hall.rows})"
+                )
+            ]
+
+        if not (1 <= self.seat <= hall.seats_in_row):
+            errors["seat"] = [
+                (
+                    "seat number must be in available range: "
+                    "(1, seats_in_row): "
+                    f"(1, {hall.seats_in_row})"
+                )
+            ]
+
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, *args, **kwargs) -> None:
+        self.full_clean()
+        super().save(*args, **kwargs)
