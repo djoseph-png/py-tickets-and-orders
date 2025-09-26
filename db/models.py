@@ -74,7 +74,7 @@ class Order(models.Model):
 
     def __str__(self) -> str:
         # Formato exigido pelo professor: <Order: YYYY-MM-DD HH:MM:SS>
-        return f"<Order: {self.created_at.strftime("%Y-%m-%d %H:%M:%S")}>"
+        return f"<Order: {self.created_at.strftime('%Y-%m-%d %H:%M:%S')}>"
 
 
 class Ticket(models.Model):
