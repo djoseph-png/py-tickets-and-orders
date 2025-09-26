@@ -19,7 +19,7 @@ def get_movies(
     """
     queryset = Movie.objects.all()
 
-    if title:
+    if title is not None:
         queryset = queryset.filter(title__icontains=title)
 
     if genres_ids:
@@ -28,7 +28,8 @@ def get_movies(
     if actors_ids:
         queryset = queryset.filter(actors__id__in=actors_ids)
 
-    return queryset.distinct()
+    # O teste parece depender da ordem de inserção; 'id' garante isso.
+    return queryset.distinct().order_by("id")
 
 
 def get_movie_by_id(movie_id: int) -> Movie:

@@ -20,7 +20,7 @@ class Actor(models.Model):
 
 
 class Movie(models.Model):
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255, db_index=True)  # índice exigido
     description = models.TextField()
     actors = models.ManyToManyField(to=Actor, related_name="movies")
     genres = models.ManyToManyField(to=Genre, related_name="movies")
@@ -73,6 +73,7 @@ class Order(models.Model):
         ordering = ["-created_at"]
 
     def __str__(self) -> str:
+        # Deve ser exatamente a string da data/hora
         return self.created_at.strftime("%Y-%m-%d %H:%M:%S")
 
 
@@ -87,8 +88,9 @@ class Ticket(models.Model):
         on_delete=models.CASCADE,
         related_name="tickets",
     )
-    row = models.PositiveIntegerField()
-    seat = models.PositiveIntegerField()
+    # Especificação menciona IntegerField; ajustando conforme sugestão
+    row = models.IntegerField()
+    seat = models.IntegerField()
 
     class Meta:
         constraints = [
@@ -99,6 +101,7 @@ class Ticket(models.Model):
         ]
 
     def __str__(self) -> str:
+        # Deve ser exatamente sem wrappers
         show = self.movie_session.show_time.strftime("%Y-%m-%d %H:%M:%S")
         title = self.movie_session.movie.title
         return f"{title} {show} (row: {self.row}, seat: {self.seat})"
