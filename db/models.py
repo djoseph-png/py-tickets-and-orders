@@ -73,8 +73,7 @@ class Order(models.Model):
         ordering = ["-created_at"]
 
     def __str__(self) -> str:
-        # Formato exigido pelo professor: <Order: YYYY-MM-DD HH:MM:SS>
-        return f"<Order: {self.created_at.strftime('%Y-%m-%d %H:%M:%S')}>"
+        return str(self.created_at)
 
 
 class Ticket(models.Model):
@@ -101,10 +100,11 @@ class Ticket(models.Model):
         ]
 
     def __str__(self) -> str:
-        # Exigido pelo prof: <Ticket: {title} {showtime} (row: X, seat: Y)>
-        show = self.movie_session.show_time.strftime("%Y-%m-%d %H:%M:%S")
-        title = self.movie_session.movie.title
-        return f"<Ticket: {title} {show} (row: {self.row}, seat: {self.seat})>"
+        return (
+            f"{self.movie_session.movie.title} "
+            f"{self.movie_session.show_time} "
+            f"(row: {self.row}, seat: {self.seat})"
+        )
 
     def clean(self) -> None:
         hall = self.movie_session.cinema_hall
